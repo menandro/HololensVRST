@@ -25,6 +25,8 @@ public class PostProcessSingle : MonoBehaviour
         cgDepthTexture = new RenderTexture(Screen.width, Screen.height, 16, RenderTextureFormat.Depth);
         material.SetTexture("_SpatialMapTex", spatialMapDepthTexture);
         material.SetTexture("_CgDepthTex", cgDepthTexture);
+        material.EnableKeyword("_VisibilityComplex");
+        material.EnableKeyword("_VisibilitySimple");
 
         //start capture of webcam stream
         if (useSemantic)

@@ -3,11 +3,8 @@
 		_MainTex("Texture", 2D) = "white" {}
 		_SpatialMapTex("Spatial Mapping Depth Texture", 2D) = "white"{}
 		_CgDepthTex("Cg Depth Texture", 2D) = "white"{}
-		_VisibiliyComplex("Visiblity Complex", Range(0, 1.0)) = 0.2
-		_VisibilitySimple("Visibility Simple", Range(0, 1.0)) = 0.4
-		_Beta("Amount of Visibility at Intersection", Range(0, 1.0)) = 0.9
-		_Slope("Steepness of Sigmoid", Range(0, 10.0)) = 1.0
-		_DepthMultiplier("Depth Multiplier", Range(1.0, 255.0)) = 5.0
+		_VisibilityComplex("Visiblity Complex", Range(0, 1.0)) = 0.1
+		_VisibilitySimple("Visibility Simple", Range(0, 1.0)) = 0.01
 	}
 
 	SubShader{
@@ -32,9 +29,6 @@
 
 			float _VisibilityComplex;
 			float _VisibilitySimple;
-			float _Beta;
-			float _Slope;
-			float _DepthMultiplier;
 
 			struct vertexInput {
 				float4 pos : POSITION;
@@ -54,12 +48,12 @@
 				float4 cgDepthC;
 				int binTotal = 0;
 				int range = 2;
-				int scale = 4; // if Complex, set to high, if Simple, set to low
+				int scale = 7; // if Complex, set to high, if Simple, set to low
 
 				base = _MainTex.Sample(sampler_MainTex, input.tex0);
 				float4 centerCgDepth = _CgDepthTex.Sample(sampler_CgDepthTex, input.tex0);
 				float4 centerSceneDepth = _SpatialMapTex.Sample(sampler_SpatialMapTex, input.tex0);
-				int maxBin = (2 * range + 1)*(2 * range + 1);
+				int maxBin = 25;//(2 * range + 1)*(2 * range + 1);
 
 				//if (centerSceneDepth.x > centerCgDepth.x) {
 				if (centerCgDepth.x != 0.0f) {
@@ -82,7 +76,11 @@
 					}
 				}
 				
-				float weight = (float) binTotal / (float) maxBin;
+				float maxValue = 1.0f;
+				float minValue = _VisibilityComplex;
+				float L = maxValue - minValue;
+				float weight = _VisibilityComplex + (L / (1.0f + exp(-0.2986f*((float)binTotal - 20.3578f))));
+				//float weight = (1 / (1 + exp(-0.3609f*((float)binTotal - 16.8413f))));
 
 				/*float x = (sceneDepth - cgDepth);
 				float x0 = -log((1 - _Beta) / _Beta) / _Slope;
@@ -94,6 +92,7 @@
 				// TODO: Smoothing function comparison
 
 				output = (1.0f - weight) * output;
+				//output = ((1.0f - weight) + weight * _VisibilityComplex) * output;
 				//if (cgDepth <= sceneDepth) { //CG is BG
 				//	output = _VisibilitySimple * output;
 				//}
