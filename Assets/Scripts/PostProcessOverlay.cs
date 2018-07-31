@@ -97,6 +97,7 @@ public class PostProcessOverlay : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Graphics.CopyTexture(LocatableCamera.webcamTexture, webcamTextureClone);
         //DebugToServer.Log.Send(LocatableCamera.width.ToString() + " " + LocatableCamera.height.ToString());
         //if (LocatableCamera.webcamTexture.didUpdateThisFrame)
         //{
