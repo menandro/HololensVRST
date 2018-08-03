@@ -8,7 +8,7 @@ public class PostProcessOverlay : MonoBehaviour
     private RenderTexture spatialMapDepthTexture;
     private RenderTexture cgDepthTexture;
     private Texture2D webcamTextureClone;
-    public int SpatialMapLayer = 8;
+    public int SpatialMapLayer = 9;
     private Camera thisCamera;
     private Camera copyCamera;
     private GameObject copyCameraGameObject;
