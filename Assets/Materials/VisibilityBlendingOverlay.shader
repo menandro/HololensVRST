@@ -30,7 +30,7 @@
 		float4 _CgDepthTex_TexelSize;
 
 		uniform Texture2D _WebcamTex;
-		//uniform SamplerState sampler_WebcamTex_point_repeat;
+		uniform SamplerState sampler_WebcamTex;
 		float4 _WebcamTex_TexelSize;
 
 		SamplerState sampler_MainTex;
@@ -79,6 +79,7 @@
 		float4 webcamCenter = _WebcamTex.Sample(sampler_MainTex, wScale *(input.tex0 + wOffset));
 		float4 webcamC;
 		float4 webcamTotal = float4(0.0f, 0.0f, 0.0f, 0.0f);
+		
 
 		int maxBin = (2 * windowSize + 1)*(2 * windowSize + 1);
 
@@ -107,19 +108,27 @@
 			}
 		}
 
-		for (int j = -windowSize; j <= windowSize; j++) {
-			for (int i = -windowSize; i <= windowSize; i++) {
-				webcamC = _WebcamTex.Sample(sampler_MainTex, wScale * (input.tex0 + wOffset) +
-					wScale * fixed2(_WebcamTex_TexelSize.x * i * windowScale, _WebcamTex_TexelSize.y * j * windowScale));
-				webcamTotal += webcamC;
+		float webcamGrayTotal = 0.0f;
+		int webcamWindowSize = 2;
+		int maxBinWebcam = (2 * webcamWindowSize + 1)*(2 * webcamWindowSize + 1);
+		int webcamWindowScale = 1;
+
+		for (int j = -webcamWindowSize; j <= webcamWindowSize; j++) {
+			for (int i = -webcamWindowSize; i <= webcamWindowSize; i++) {
+				webcamC = _WebcamTex.Sample(sampler_WebcamTex, wScale * (input.tex0 + wOffset) +
+					wScale * fixed2(_WebcamTex_TexelSize.x * i * webcamWindowScale, _WebcamTex_TexelSize.y * j * webcamWindowScale));
+				//webcamTotal += webcamC;
+				webcamGrayTotal += (webcamC.x + webcamC.y + webcamC.z) / 3.0f;
 			}
 		}
 
+		webcamGrayTotal = webcamGrayTotal / (float)maxBinWebcam;
 		float maxValue = 1.0f;
-		float minValue = _VisibilityComplex;
+		float minValue = _VisibilityComplex * webcamGrayTotal;
 		float L = maxValue - minValue;
 		//float weight = _VisibilityComplex + (L / (1.0f + exp(-0.2986f*((float)binTotal - 20.3578f))));
-		float weight = _VisibilityComplex + (L / (1.0f + exp(-k*((float)binTotal - x0))));
+		//float weight = _VisibilityComplex + (L / (1.0f + exp(-k*((float)binTotal - x0))));
+		float weight = minValue + (L / (1.0f + exp(-k * ((float)binTotal - x0))));
 
 		//float weight = (1 / (1 + exp(-0.3609f*((float)binTotal - 16.8413f))));
 
@@ -141,6 +150,7 @@
 		//return float4(x, x, 0.0f, 1.0f);
 		return output;
 		//return webcamTotal/(float)maxBin;
+		//return float4(webcamGrayTotal, webcamGrayTotal, webcamGrayTotal, 1.0f);
 		}
 		ENDCG
 	}
